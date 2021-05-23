@@ -71,31 +71,31 @@
 下面是本书在英文字体上的两个约定：
 
 等宽字体（Constant Width）  
-  用来说明代码文件的内容或命令输出的内容，也表示出现在代码中的源代码关键字。
+&emsp;用来说明代码文件的内容或命令输出的内容，也表示出现在代码中的源代码关键字。
 
 斜体（*Italic*）  
-  用来说明文件名、目录名、程序名、命令名、命令行选项和URL
+&emsp;用来说明文件名、目录名、程序名、命令名、命令行选项和URL
 
 ## 如何与我们联系
 
 请把有关本书的评论和问题告知出版社：
 
 美国：  
-  O'Reilly Media, Inc  
-  1005 Gravenstein Highway North  
-  Sebastopol, CA 95472
+&emsp;O'Reilly Media, Inc  
+&emsp;1005 Gravenstein Highway North  
+&emsp;Sebastopol, CA 95472
 
 中国：  
-  北京市海滨区知春路49号希格玛公寓B座809室（100080）  
-  奥莱理软件（北京）有限公司
+&emsp;北京市海滨区知春路49号希格玛公寓B座809室（100080）  
+&emsp;奥莱理软件（北京）有限公司
   
 本书的网页上列出了勘误表、示例和任何额外的信息。可登录以下网址查询：  
-  *http://www.oreilly,com/catalog/understandlk*  
-  *http://www.oreilly.com.cn/book.php?bn=978-7-5083-5394-4*
+&emsp;*http://www.oreilly,com/catalog/understandlk*  
+&emsp;*http://www.oreilly.com.cn/book.php?bn=978-7-5083-5394-4*
 
 如果想要发表关于本书的评论或咨询有关技术问题，请发邮件至：  
-  *bookquestions@oreilly.com*  
-  *info@mail.oreilly.com.cn*
+&emsp;*bookquestions@oreilly.com*  
+&emsp;*info@mail.oreilly.com.cn*
 
 关于图书、会议、资源中心和O'Reilly网络的更多信息，请查看我们的站点：  
 &emsp;*http://www.oreilly.com*  
