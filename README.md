@@ -98,8 +98,8 @@
   *info@mail.oreilly.com.cn*
 
 关于图书、会议、资源中心和O'Reilly网络的更多信息，请查看我们的站点：  
-  *http://www.oreilly.com*  
-  *http://www.oreilly.com.cn*
+&emsp;*http://www.oreilly.com*  
+&emsp;*http://www.oreilly.com.cn*
 
 ## 致谢
 
