@@ -62,3 +62,57 @@
 - 最后两章结束我们对 Linux 内核的详细游览：第十九章 “进程通信” 介绍通信机制而不是用户态进程使用的信号；第二十章 “程序的执行” 说明用户应用程序是如何执行的。
 - 最后，但必不可少的，就是附录：附录一 “系统启动” 大致描述了 Linux 如何启动；而附录二 “模块” 描述怎样动态地重新配置正在运行的内核，即按需增加或删除有关功能。源代码索引（Source Code Index）包含了在本书中引用的所有 Linux 符号；你将在这里找到宣言每个符号的 Linux 文件名，以及对这个符号进行解释的正文所在的页码。我们认为你会发现它非常方便实用。
 
+## 背景知识
+
+除了一些C语言编程技巧和汇编语言的知识外，理解这些内容不需要任何先决条件。
+
+## 排版约定
+
+下面是本书在英文字体上的两个约定：
+
+等宽字体（Constant Width）
+  用来说明代码文件的内容或命令输出的内容，也表示出现在代码中的源代码关键字。
+
+斜体（*Italic*）
+  用来说明文件名、目录名、程序名、命令名、命令行选项和URL
+
+## 如何与我们联系
+
+请把有关本书的评论和问题告知出版社：
+
+美国：
+  O'Reilly Media, Inc
+  1005 Gravenstein Highway North
+  Sebastopol, CA 95472
+
+中国：
+  北京市海滨区知春路49号希格玛公寓B座809室（100080）
+  奥莱理软件（北京）有限公司
+  
+本书的网页上列出了勘误表、示例和任何额外的信息。可登录以下网址查询：
+  *http://www.oreilly,com/catalog/understandlk*
+  *http://www.oreilly.com.cn/book.php?bn=978-7-5083-5394-4*
+
+如果想要发表关于本书的评论或咨询有关技术问题，请发邮件至：
+  *bookquestions@oreilly.com*
+  *info@mail.oreilly.com.cn*
+
+关于图书、会议、资源中心和O'Reilly网络的更多信息，请查看我们的站点：
+  *http://www.oreilly.com*
+  *http://www.oreilly.com.cn*
+
+## 致谢
+
+如果没有罗马大学 Tor Vergata 分校工程学校很多学生的尽力帮助，这本书不可能完成，他们不但上了这门课，还试着解读了 Linux 内核的讲稿。他们不懈的努力紧紧抓住了源代码的真正含义，使得我们对讲稿不断改进，并改正了很多错误。
+
+Andy Oram 是 O'Reilly Media 的优秀编辑，非常值得信任。他是 O'Reilly 第一位对此项目给予信任的人，他花费了很多时间和精力阅读我们的初稿。他提出的很多建议使本书的可读性更强，同时他还写出了不少出色的介绍性段落。
+
+还有一些颇具声望的技术审校，他们非常认真地阅读了本书的内容。第一版的审校人为（名字按字母顺序排列）：Alan Cox、Michael Kerrisk、Paul Kinzelman、Raph Levien 和 Rik van Riel。
+
+第二版的审校人为Erez Zadok、Jerry Cooperstein、John Goerzen、Michael Kerrisk、Paul Kinzelman、Rik van Riel 和 Walt Smith。
+
+第三版的审校人为Charles P. Wright、Clemens Buchacher、Erez Zadok、Raphael Finkel、Rik van Riel 和 Robert P. J. Day。他们的建议，加之世界各地很多读者的参与，帮助我们去掉了很多错误和不准确的地方，使得本书更具有说服力。
+
+<p align="right">- Dainel P. Bovet</p>
+<p align="right">Macro Cesati</p>
+<p align="right">July 2005</p>
