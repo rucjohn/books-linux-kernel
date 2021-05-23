@@ -1,1 +1,3 @@
+## Linux 与其他类 Unix 内核的比较
+
 市场上各种类 Unix 系统在很多重要的方面有所不同，其中有些系统已经有很长的历史，并且显得有点过时。所有商业版本都是 SVR4 和 4.4BSD 的变体，并且都趋向于遵循某些通用标准，诸如 IEEE 的 POSIX（Portable Operating Systems based on Unix 基于 Unix 的可移植操作系统） 和 X/Open 的 CAE（Common Applications Enviroment，公共应用环境）。
