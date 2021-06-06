@@ -8,3 +8,4 @@
   * [操作系统基本概念](topic_1/Basic_concepts_of_operating_system.md)
   * [Unix 文件系统概述](topic_1/Overview_of_UNIX_file_system.md)
   * [Unix 内核概述](topic_1/Overview_of_UNIX_file_kernel.md)
+    * [进程/内核模式](topic_1/Overview_of_UNIX_file_kernel/Process_or_kernel_mode.md)
