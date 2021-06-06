@@ -12,3 +12,4 @@
     * [进程实现](topic_1/Overview_of_UNIX_file_kernel/Process_implementation.md)
     * [可重入内核](topic_1/Overview_of_UNIX_file_kernel/Reentrant_kernel.md)
     * [进程地址空间](topic_1/Overview_of_UNIX_file_kernel/Process_address_space.md)
+    * [同步和临界区](topic_1/Overview_of_UNIX_file_kernel/Synchronization_and_critical_region.md)
