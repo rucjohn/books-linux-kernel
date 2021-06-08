@@ -20,3 +20,4 @@
 * [第二章 内存寻址](topic_2/README.md)
   * [内存地址](topic_2/Memory_address.md)
   * [硬件中的分段](topic_2/Segmentation_in_hardware.md)
+    * [段选择符和段寄存器](topic_2/Segmentation_in_hardware/Segment_selector_and_segment_register.md)
