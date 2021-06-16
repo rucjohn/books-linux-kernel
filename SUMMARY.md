@@ -19,7 +19,7 @@
     * [设备驱动程序](topic_1/Overview_of_UNIX_file_kernel/Device_driver.md)
 * [第二章 内存寻址](topic_2/README.md)
   * [内存地址](topic_2/Memory_address.md)
-  * [硬件中的分段](topic_2/Segmentation_in_hardware.md)
+  * [硬件中的分段](topic_2/Segmentation_in_hardware/README.md)
     * [段选择符和段寄存器](topic_2/Segmentation_in_hardware/Segment_selector_and_segment_register.md)
     * [段描述符](topic_2/Segmentation_in_hardware/Segment_descriptor.md)
     * [快速访问段描述符](topic_2/Segmentation_in_hardware/Fast_access_segment_descriptor.md)
