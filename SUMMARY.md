@@ -24,3 +24,4 @@
     * [段描述符](topic_2/Segmentation_in_hardware/Segment_descriptor.md)
     * [快速访问段描述符](topic_2/Segmentation_in_hardware/Fast_access_segment_descriptor.md)
     * [分段单元](topic_2/Segmentation_in_hardware/Segmentation_unit.md)
+  * [Linux 中的分段](topic_2/Segmentation_in_linux/README.md)
