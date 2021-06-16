@@ -24,7 +24,7 @@
 
 图 2-3 阐明了段描述符的格式。
 
-![图 2-3：段描述符格式](../static/2_3_1.jpg)
+![图 2-3：段描述符格式](../static/segment_descriptor.jpg)
 
 &emsp;
 
