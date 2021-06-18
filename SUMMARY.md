@@ -26,3 +26,4 @@
     * [分段单元](topic_2/Segmentation_in_hardware/Segmentation_unit.md)
   * [Linux 中的分段](topic_2/Segmentation_in_linux/README.md)
     * [Linux GDT](topic_2/Segmentation_in_linux/Linux_GDT.md)
+    * [Linux LDT](topic_2/Segmentation_in_linux/Linux_LDT.md)
