@@ -27,3 +27,4 @@
   * [Linux 中的分段](topic_2/Segmentation_in_linux/README.md)
     * [Linux GDT](topic_2/Segmentation_in_linux/Linux_GDT.md)
     * [Linux LDT](topic_2/Segmentation_in_linux/Linux_LDT.md)
+  * [硬件中的分页](topic_2/Paging_in_hardware/README.md)
