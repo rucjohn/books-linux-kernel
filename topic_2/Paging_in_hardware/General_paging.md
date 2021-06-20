@@ -6,15 +6,15 @@
 
 * *Directory（目录）*  
 最高 10 位  
-&emap;
+&emsp;
 
 * *Table（页表）*  
 中间 10 位  
-&emap;
+&emsp;
 
 * *Offset（偏移量）*  
 最低 12 位  
-&emap;
+&emsp;
 
 线性地址的转换分两步完成，每一步是基于一种转换表，第一种转换表秒为页目录表（*page directory*），第二种转换表称为页表（*page table*）。
 
