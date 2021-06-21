@@ -29,3 +29,4 @@
     * [Linux LDT](topic_2/Segmentation_in_linux/Linux_LDT.md)
   * [硬件中的分页](topic_2/Paging_in_hardware/README.md)
     * [常规分页](topic_2/Paging_in_hardware/General_paging.md)    
+    * [扩展分页](topic_2/Paging_in_hardware/Extended_paging.md)    
