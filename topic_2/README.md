@@ -7,5 +7,7 @@
 关于内存管理有三章，这是其中的第一章；还有第八章，讨论内核怎样给自己分配主存；还有第九章，考虑怎样给进程分配线性地址。
 
 
-<font color=#FFFF00 >微软雅黑</font>
+<font color=#FF000 >红色</font>
+<font color=#008000 >绿色</font>
+<font color=#FFFF00 >黄色</font>
 
