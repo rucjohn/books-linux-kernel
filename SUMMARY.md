@@ -36,3 +36,4 @@
     * [64 位系统中的分页](topic_2/Paging_in_hardware/Paging_in_64-bit_systems.md)
     * [硬件高速缓存](topic_2/Paging_in_hardware/Hardware_cache.md)
     * [转换后援缓冲器（TLB）](topic_2/Paging_in_hardware/TLB.md)
+  * [Linux 中的分页](topic_2/Paging_in_linux/README.md)
