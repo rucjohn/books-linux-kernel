@@ -34,4 +34,4 @@
     * [常规分页举例](topic_2/Paging_in_hardware/General_paging_example.md)
     * [物理地址扩展（PAE）分页机制](topic_2/Paging_in_hardware/PAE.md)
     * [64 位系统中的分页](topic_2/Paging_in_hardware/Paging_in_64-bit_systems.md)
-
+    * [硬件高速缓存](topic_2/Paging_in_hardware/Hardware_cache.md)
