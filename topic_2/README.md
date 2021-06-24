@@ -6,10 +6,6 @@
 
 关于内存管理有三章，这是其中的第一章；还有第八章，讨论内核怎样给自己分配主存；还有第九章，考虑怎样给进程分配线性地址。
 
-<dl>
-  <dt>Definition list</dt>
-  <dd>Is something people use sometimes.</dd>
 
-  <dt>Markdown in HTML</dt>
-  <dd>Does *not* work **very** well. Use HTML <em>tags</em>.</dd>
-</dl>
+<font color=#FFFF00 >微软雅黑</font>
+
