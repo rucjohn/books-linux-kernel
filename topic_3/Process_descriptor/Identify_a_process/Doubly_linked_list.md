@@ -6,7 +6,7 @@
 
 因此，Linux 内核定义了 `list_head` 数据结构，字段 next 和 prev 分别表示能用双向链表向前和向后的指针元素。不过，值得特别关注的是，list_head 字段的指针中存放的是另一个 list_head 字段的地址，而不是含有 `list_head` 结构的整个数据结构地址（参见图 3-3（a））。
 
-![图 3-3：用 list_head 数据结构构造的一个双向链表](../static/3_3.jpg)
+![图 3-3：用 list_head 数据结构构造的一个双向链表](../../static/3_3.jpg)
 
 新链表是用 `LIST_HEAD(list_name)` 宏创建的。它申明类型为 list_head 的新变量 list_name，该变量作为新链表头的占位符，是一个哑元素。`LIST_HEAD(list_name)` 宏还初始化 list_head 数据结构的 prev 和 next 字段，让它们指向 list_name 变量本身。见图 3-3（b）。
 
