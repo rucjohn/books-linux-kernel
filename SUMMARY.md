@@ -40,4 +40,5 @@
 * [第三章 进程](topic_3/README.md)
   * [进程、轻量级进程和线程](topic_3/Process_LWP_thread.md)
   * [进程描述符](topic_3/Process_descriptor/README.md)
-    * [进程状态](topic_3/Process_descriptor/Process_status.md)
+    * [进程状态](topic_3/Process_descriptor/Process_state.md)
+    * [标识一个进程](topic_3/Process_descriptor/Identify_a_process.md)
