@@ -84,16 +84,31 @@ movl (%ecx), p
 
 名称 | 说明
 --- | ---
-list_add(n,p) | 把 n 指向的元素插入 p 所指向的特定元素之后（为了把 n 插入在链表的开始，就设置 p 为第一个元素的地址）
-list_add_tail(n,p) | 把 n 指向的元素插到 p 所指向的特定元素之前（为了把 n 插入到链表的尾部，就设置 p 为第一个元素的地址）
-list_del(p) | 删除 p 所指向的元素（没有必要指定链表的第一个元素）
-list_empty(p) | 检查由第一个元素的地址 p 指定的链表是否为空
-list_entry(p,t,m) | 返回类型为 t 的数据结构的地址，其中类型 t 中含有 list_head 字段 ，而 list_head 字段中含有名字 m 和 地址 p
-list_for_each(p,h) | 对表头地址 h 指定的链表进行扫描，在每次循环时，通过 p 返回指向链表元素的 list_head 结构的指针
-list_for_each_entry(p,h,m) | 与 list_for_each 类似，但是返回包含了 list_head 结构的数据结构的地址，而不是 list_head 结构本身的地址
+`list_add(n,p)` | 把 n 指向的元素插入 p 所指向的特定元素之后（为了把 n 插入在链表的开始，就设置 p 为第一个元素的地址）
+`list_add_tail(n,p)` | 把 n 指向的元素插到 p 所指向的特定元素之前（为了把 n 插入到链表的尾部，就设置 p 为第一个元素的地址）
+`list_del(p)` | 删除 p 所指向的元素（没有必要指定链表的第一个元素）
+`list_empty(p)` | 检查由第一个元素的地址 p 指定的链表是否为空
+`list_entry(p,t,m)` | 返回类型为 t 的数据结构的地址，其中类型 t 中含有 list_head 字段 ，而 list_head 字段中含有名字 m 和 地址 p
+`list_for_each(p,h)` | 对表头地址 h 指定的链表进行扫描，在每次循环时，通过 p 返回指向链表元素的 list_head 结构的指针
+`list_for_each_entry(p,h,m)` | 与 list_for_each 类似，但是返回包含了 list_head 结构的数据结构的地址，而不是 list_head 结构本身的地址
 
 Linux 2.6 内核支持另一种双向链表，其与 list_head 有着明显的区别，因为它不是循环链表，主要用于散列表，对散列表而言重要的是空间而不是在固定的时间内找到表中最后一个元素。表头存放在 hlist_head 数据结构中，该结构只不过是指向表的第一个元素的指针（如果链表为空，那么这个指针为 NULL）。每个元素都是 hlist_node 类型的数据结构，它的 next 指针指向下一个元素，pprev 指针指向前一个元素的 next 字段。因为不是循环链表，所以第一个元素的 pprev 字段和最后个元素的 next 字段都置为 NULL。对这种表可以用类似表 3-1 中的函数和宏（`hlist_add_head()`、`hlist_del()`、`hlist_empty()`、`hlist_entry`、`hlist_for_each_entry`）来操纵。
 
+## 进程链表
 
+我们首先介绍双向链表的每个例子 --- 进程链表，进程链表把所有进程的描述符链表起来。每个 task_struct 结构都包含一个 list_head 类型的 tasks 字段，这个类型的 prev 和 next 字段分别指向前面和后面的 task_struct 元素。
 
+进程链表的头是 init_task 描述符，它是所谓的 0 进程（*process 0*）或 *swapper* 进程的进程描述符（参见本章 “内核线程” 一节）。init_task 的 tasks.prev 字段指向链表中最后插入的进程描述符的 tasks 字段。
+
+`SET_LINKS` 和 `REMOVE_LINKS` 宏分别用于从进程链表中插入和删除一个进程描述符。这些宏考虑了进程间的父子关系（见本章后面 “如何组织进程” 一节）。
+
+还有一个很有用的宏就是 `for_each_process`，它的功能是扫描整个进程链表，其定义如下：
+```
+# define for_each_process(p) \
+    for (p=&init_task; (p=list_entry((p)->tasks.next, \
+                                     struct task_struct, tasks) \
+                                    ) != &init_task; )
+```
+
+这个宏是循环控制语句，内核开发者利用它提供循环。注意 init_task 进程描述符是如何起到链表头作用的。这个宏从指向 init_task 的指针开始，把指针移到下一个任务，然后继续，直到又到 init_task 为止（感谢链表的循环性）。在每一次循环时，传递给这个宏的参变量中存放的是当前被扫描进程描述符的地址，这与 `list_entry` 宏的返回值一样。
 
