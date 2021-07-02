@@ -85,6 +85,7 @@ void sleep_on(wait_queue_head_t *wq)
 &emsp;
 
 * 在 Linux 2.6 中引入的 `prepare_to_wait()`、`prepare_to_wait_exclusive()` 和 `finish_wait()` 函数提供了另外一种途径来使当前进程在一个等待队列中睡眠。它们的典型应用如下：  
+
 ```
 DEFINE_WAIT(wait);
 prepare_to_wait_exclusive(&wq, &wait, TASK_INTERRUPTIBLE); /* wq 是等待队列的头 */
@@ -92,14 +93,15 @@ prepare_to_wait_exclusive(&wq, &wait, TASK_INTERRUPTIBLE); /* wq 是等待队列
 if (!codition)
     schedule();
 finish_wait(&wq, &wait);
-
 ```
+
 函数 `prepare_to_wait()` 和 `prepare_to_wait_exclusive()` 用传递的第三个参数设置进程的状态，然后把等待队列元素的互斥标志 flag 分别设置为 0（非互斥）或 1（互斥），最后，把等待元素 wait 插入到以 wq 为头的等待队列的链表中。  
 
 进程一旦被唤醒就执行 `finish_wait()` 函数，它把进程的状态再次设置为 TASK_RUNNING（仅发生在调用 `schedule()` 之前，唤醒条件变为真的情况下），并从等待队列中删除等待元素（除非这个工作已经由唤醒函数完成）。  
 &emsp;
 
 * `wait_event` 和 `wait_event_interruptible` 宏使它们的调用进程在等待队列上睡眠，一直到修改了给定条件为止。例如，宏 `wait_event(wq,condition)` 本质上实现下面的功能：  
+
 ```
 DEFINE_WAIT(_ _wait);
 for (;;) {
@@ -115,6 +117,7 @@ finish_wait(&wq, &_ _wait);
 对上面列出的函数做一些说明：`sleep_on()` 类函数在以下条件下不能使用，那就是必须测试条件并且当条件还没有得到验证时又紧接着让进程去睡眠；由于那些条件是众所周知的竞争条件产生的根源，所以不鼓励这样使用。此外，为了把一个互斥进程插入到等待队列，内核必须使用 `prepare_to_wait_exclusive()` 函数（或者只是直接调用 `add_wait_queue_exclusive()`）。所有其他的相关函数把进程当作非互斥进程来插入。最后，除非使用 `DEFINE_WAIT` 或 `finish_wait()`，否则内核必须在唤醒等待进程后从等待队列中删除对应的等待队列元素。
 
 内核通过下面的任何一个宏唤醒等待队列中的进程并把它们的状态置为 TASK_RUNNING：
+
 - `wake_up`
 - `wake_up_nr`
 - `wake_up_all`
@@ -132,6 +135,7 @@ finish_wait(&wq, &_ _wait);
 - `wake_up_locked` 和 `wake_up` 宏相类似，仅有的不同是当 `wait_queue_head_t` 中的自旋锁已经被持有时要调用 `wake_up_locked`。
 
 例如，`wake_up` 宏等价于下列代码片段：
+
 ```
 void wake_up(wait_queue_head_t *q)
 {
