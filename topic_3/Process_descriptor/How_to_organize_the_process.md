@@ -55,5 +55,27 @@ q>func = default_wake_function;
 
 也可以选择 `DEFAULT_WAIT` 宏声明一个 wait_queue_t 类型的新变量，并且 CPU 上运行的当前进程的描述符和唤醒函数 `autoremove_wake_function()` 的地址初始化这个新变量。这个函数调用 `default_wake_function()` 来唤醒睡眠进程，然后从等待队列的链表中删除对应的元素（每个等待队列链表中的一个元素其实就是指向睡眠进程描述符的指针）。最后，内核开发者可以通过 `init_waitqueue_func_entry()` 函数来自定义唤醒函数，该函数负责初始化等待队列的元素。
 
-一旦
+一旦定义了一个元素，必须把它插入等待队列。
+- `add_wait_queue()` 函数把一个非互斥进程插入等待队列链表的第一个位置。
+- `add_wait_queue_exclusive()` 函数把一个互斥进程插入等待队列链表的最后一个位置。
+- `remove_wait_queue()` 函数从等待队列链表中删除一个进程。
+- `waitqueue_active()` 函数检查 一个给定的等待队列是否为空。
+
+要等待特定条件的进程可以调用如下列表中的任何一个函数：
+
+* `sleep_on()` 对当前进程进行操作：  
+```
+void sleep_on(wait_queue_head_t *wq)
+{
+    wait_queue_t wait;
+    init_waitqueue_entry(&wait, current);
+    current->state = TASK_UNINTERRUPTIBLE;
+    add_wait_queue(wq,&wait);
+    schedule();
+    remove_wait_queue(wq, &wait);
+}
+```
+该函数把当前进程的状态设置为 TASK_UNINTERRUPTIBLE，并把它插入到特定的等待队列。然后，它调用调度程序，而调度程序重新开始另一个程序的执行。当睡眠进程被唤醒时，调度程序重新开始执行 `sleep_on()` 函数，把该进程从等待队列中删除。
+
+
 
