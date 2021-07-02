@@ -47,3 +47,4 @@
       * [双向链表](topic_3/Process_descriptor/Identify_a_process/Doubly_linked_list.md)
       * [进程链表](topic_3/Process_descriptor/Identify_a_process/Process_linked_list.md)
       * [TASK_RUNNING 状态的进程链表](topic_3/Process_descriptor/Identify_a_process/Process_linked_list_in_TASK_RUNNING_state.md)
+    * [进程间的关系](topic_3/Process_descriptor/Relationship_between_processes.md)
