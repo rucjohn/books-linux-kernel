@@ -75,7 +75,80 @@ void sleep_on(wait_queue_head_t *wq)
     remove_wait_queue(wq, &wait);
 }
 ```
-该函数把当前进程的状态设置为 TASK_UNINTERRUPTIBLE，并把它插入到特定的等待队列。然后，它调用调度程序，而调度程序重新开始另一个程序的执行。当睡眠进程被唤醒时，调度程序重新开始执行 `sleep_on()` 函数，把该进程从等待队列中删除。
+该函数把当前进程的状态设置为 TASK_UNINTERRUPTIBLE，并把它插入到特定的等待队列。然后，它调用调度程序，而调度程序重新开始另一个程序的执行。当睡眠进程被唤醒时，调度程序重新开始执行 `sleep_on()` 函数，把该进程从等待队列中删除。  
+&emsp;
+
+* `interruptible_sleep_on()` 与 `sleep_on()` 函数是一样的，但稍有不同，前者把当前进程的状态设置为 TASK_INTERRUPTIBLE 而不是 TASK_UNINTERRUPTIBLE，因此，接受一个信号就可以唤醒当前进程。  
+&emsp;
+
+* `sleep_on_timeout()` 和 `interruptible_sleep_on_timeout()` 与前面函数类似，但它们允许调用者定义一个时间间隔，过了这个间隔以后，进程将由内核唤醒。为了做到这点，它们调用 `schedule_timeout()` 函数而不是 `schedule()` 函数（参见第六章中 “动态定时器的应用” 一节）。  
+&emsp;
+
+* 在 Linux 2.6 中引入的 `prepare_to_wait()`、`prepare_to_wait_exclusive()` 和 `finish_wait()` 函数提供了另外一种途径来使当前进程在一个等待队列中睡眠。它们的典型应用如下：  
+```
+DEFINE_WAIT(wait);
+prepare_to_wait_exclusive(&wq, &wait, TASK_INTERRUPTIBLE); /* wq 是等待队列的头 */
+...
+if (!codition)
+    schedule();
+finish_wait(&wq, &wait);
+
+```
+函数 `prepare_to_wait()` 和 `prepare_to_wait_exclusive()` 用传递的第三个参数设置进程的状态，然后把等待队列元素的互斥标志 flag 分别设置为 0（非互斥）或 1（互斥），最后，把等待元素 wait 插入到以 wq 为头的等待队列的链表中。  
+
+进程一旦被唤醒就执行 `finish_wait()` 函数，它把进程的状态再次设置为 TASK_RUNNING（仅发生在调用 `schedule()` 之前，唤醒条件变为真的情况下），并从等待队列中删除等待元素（除非这个工作已经由唤醒函数完成）。  
+&emsp;
+
+* `wait_event` 和 `wait_event_interruptible` 宏使它们的调用进程在等待队列上睡眠，一直到修改了给定条件为止。例如，宏 `wait_event(wq,condition)` 本质上实现下面的功能：  
+```
+DEFINE_WAIT(_ _wait);
+for (;;) {
+    prepare_to_wait(&wq, &_ _wait, TASK_UNINTERRUPTIBLE);
+    if (condition)
+        break;
+    schedule();
+}
+finish_wait(&wq, &_ _wait);
+```
+&emsp;
+
+对上面列出的函数做一些说明：`sleep_on()` 类函数在以下条件下不能使用，那就是必须测试条件并且当条件还没有得到验证时又紧接着让进程去睡眠；由于那些条件是众所周知的竞争条件产生的根源，所以不鼓励这样使用。此外，为了把一个互斥进程插入到等待队列，内核必须使用 `prepare_to_wait_exclusive()` 函数（或者只是直接调用 `add_wait_queue_exclusive()`）。所有其他的相关函数把进程当作非互斥进程来插入。最后，除非使用 `DEFINE_WAIT` 或 `finish_wait()`，否则内核必须在唤醒等待进程后从等待队列中删除对应的等待队列元素。
+
+内核通过下面的任何一个宏唤醒等待队列中的进程并把它们的状态置为 TASK_RUNNING：
+- `wake_up`
+- `wake_up_nr`
+- `wake_up_all`
+- `wake_up_interruptible`
+- `wake_up_interruptible_nr`
+- `wake_up_interruptible_all`
+- `wake_up_interruptible_sync`
+- `wake_up_locked`
+
+从每个宏的名字我们可以明白功能：
+- 所有宏都考虑到处于 TASK_INTERRUPTIBLE 状态的睡眠进程；如果宏的名字中不含有字符串 “interruptible”，那么处于 TASK_UNINTERRUPTIBLE 状态的睡眠进程也被考虑到。
+- 所有宏都唤醒具有请求状态的所有非互斥进程（参见上一项）。
+- 名字中含有 “nr” 字符串的宏唤醒给定数的具有有请求状态的互斥进程；这个数字是宏的一个参数。名字中含有 “all” 字符串的宏唤醒具有请求状态的所有互斥进程。最后，名字中不含有 “nr” 或 “all” 字符串的宏只唤醒具有请求状态的一个互斥进程。
+- 名字中不含有 “sync” 字符串的宏检查被唤醒进程的优先级是否高于系统中正在运行进程的优先级，并在必要时调用 `schedule()`。这些检查并不是由名字含有 “sync” 字符串的宏进行的，造成的结果是高优先级进程的执行稍有延迟。
+- `wake_up_locked` 和 `wake_up` 宏相类似，仅有的不同是当 `wait_queue_head_t` 中的自旋锁已经被持有时要调用 `wake_up_locked`。
+
+例如，`wake_up` 宏等价于下列代码片段：
+```
+void wake_up(wait_queue_head_t *q)
+{
+    struct list_head *tmp;
+    wait_queue_t *curr;
+
+    list_for_each(tmp, &q->task_list) {
+        curr = list_entry(tmp, wait_queue_t, task_list);
+        if (curr->func(curr, TASK_INTERRUPTIBLE|TASK_UNINTERRUPTIBLE, 0, NULL) && curr->flags)
+            break;
+    }
+}
+```
+
+`list_for_each` 宏扫描双向链表 `q->task_list` 中的所有项，即等待队列中的所有进程。对第一项，`list_entry` 宏都计算 wait_queue_t 变量对应的地址。这个变量的 func 字段存放唤醒函数的地址，它试图唤醒由等待队列元素的 task 字段标识的进程。如果一个进程已经被有效地唤醒（函数返回 1）并且进程是互斥的（`curr->flags == 1`），循环结束。因为所有的非互斥进程总是在双向链表的开始位置，而所有的互斥进程在双向链表的尾部，所以函数总是先唤醒非互斥进程然后再唤醒互斥进程，如果有进程存在的话。
+
+> 顺便提一下，一个等待队列中同时包含互斥进程和非互斥进程的情况是非常罕见的。
 
 
 
