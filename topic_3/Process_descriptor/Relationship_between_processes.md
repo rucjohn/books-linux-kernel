@@ -88,5 +88,40 @@ int | nr | pid 的数值
 struct hlist_node | pid_chain | 链接散列链表的下一个和前一个元素
 struct list_head | pid_list | 每个 pid 的进程链表头
 
+![图 3-6：PID 散列表](../static/3_6.jpg)
 
+图 3-6 给出了 PIDTYPE_TGID 类型散列表的例子。pid_hash 数组的第二个元素存放散列表的地址，也就是用 hlist_head 结构的数组表示链表的头。在散列表第 71 项为起点形成的链表中，有两个 PID 号为 246 和 4351 的进程描述符（双箭头线表示一结向前和向后的指针）。PID 的值存放在 pid 结构的 nr 字段中，而 pid 结构在进程描述符中。
+
+> 顺便提一下，由于线程组的号和它的首创者的 PID 相同，因此这些 PID 值也存在进程描述符的 pid 字段中。
+
+我们考虑线程组 4351 的 PID 链表：散列表中的进程描述符的 pid_list 字段中存放链表的头，同时每个 PID 链表中指向前一个元素和后一个元素的指针也存放在每个链表元素的 pid_list 字段中。
+
+下面是处理 PID 散列表的函数和宏：
+
+* **do_each_task_pid(nr,type,task)**  
+&emsp;
+
+* **while_each_task_pid(nr,type,task)**  
+标记 do-while 循环的开始和结束，循环作用在 PID 值等于 nr 的 PID 链表上，链表的类型由参数 type 给出，task 参数指向当前被扫描的元素的进程描述符。  
+&emsp;
+
+* **find_task_by_pid_type(type,nr)**  
+在 type 类型的散列表中查找 PID 等于 nr 的进程。该函数返回所匹配的进程描述符指针，若没有匹配的进程，函数返回 NULL。  
+&emsp;
+
+* **find_task_by_pid(nr)**  
+与 find_task_by_pid_type(PIDTYPE_PID,nr) 相同。  
+&emsp;
+
+* **attach_pid(task,type,nr)**  
+把 task 指向的 PID 等于 nr 的进程描述符插入 type 类型的散列表中。如果一个 PID 等于 nr 的进程描述符已经在散列表中，这个函数就只把 task 插入已有的 PID 进程链表中。  
+&emsp;
+
+* **detach_pid(task,type)**  
+从 type 类型的 PID 进程链表中删除 task 所指向的进程描述符。如果删除后 PID 进程链表没有变为空，则函数终止，否则，该函数还要从 type 类型的散列表中删除进程描述符。最后，如果 PID 的值没有出现在任何其他的散列表中，为了这个值能够被反复使用，该函数还必须清除 PID 位图中的相应位。  
+&emsp;
+
+* **next_thread(task)**  
+返回 PIDTYPE_TGID 类型的散列表链表中 task 批示的下一个轻量级进程的进程描述符。由于散列链表的循环的，若应用于传统的进程，那么该宏返回进程本身的描述符地址。  
+&emsp;
 
