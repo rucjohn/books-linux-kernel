@@ -44,3 +44,16 @@ typedef struct _ _wait_queue wait_queue_t;
 
 可以用 `DECLARE_WAIT_QUEUE_HEAD(name)` 宏定义一个新等待队列的头，它静态地声明一个叫 name 的等待队列的头变量并对该变量的 lock 和 task_list 字段进行初始化。函数 `init_waitqueue_head()` 可以用来初始化动态分配的等待队列的头变量。
 
+函数 `init_waitqueue_entry(q,p)` 如下所示，初始化 wait_queue_t 结构的变量 q：
+```
+q>flags = 0;
+q>task = p;
+q>func = default_wake_function;
+```
+
+非互斥进程 p 将由 `default_wake_function()` 唤醒，`default_wake_function()` 是在第七章中要讨论的 `try_to_wake_up()` 函数的一个简单的封装。
+
+也可以选择 `DEFAULT_WAIT` 宏声明一个 wait_queue_t 类型的新变量，并且 CPU 上运行的当前进程的描述符和唤醒函数 `autoremove_wake_function()` 的地址初始化这个新变量。这个函数调用 `default_wake_function()` 来唤醒睡眠进程，然后从等待队列的链表中删除对应的元素（每个等待队列链表中的一个元素其实就是指向睡眠进程描述符的指针）。最后，内核开发者可以通过 `init_waitqueue_func_entry()` 函数来自定义唤醒函数，该函数负责初始化等待队列的元素。
+
+一旦
+
