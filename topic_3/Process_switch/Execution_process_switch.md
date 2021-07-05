@@ -162,7 +162,7 @@ if (prev_p->thread.io_bitmap_ptr || next_p->thread.io_bitmap_ptr)
     因为进程很少修改 I/O 权限位图，所以该位图在 “懒” 模式中被处理：当且仅当一个进程在当前时间片内实际访问 I/O 端口时，真实位图才被拷贝到本地 CPU 和 TSS 中。进程的定制 I/O 权限位图被保存在 thread_info 结构的 io_bitmap_ptr 字段指向的缓冲区中。`headle_io_bitmap()` 函数为next_p 进程设置本地 CPU 使用的 TSS 的 io_bitmap 字段如下：  
     - 如果 next_p 进程不拥有自己的 I/O 权限位图，则 TSS 的 io_bitmap 字段被设置为 `0x8000`。
     - 如果 next_p 进程拥有自己的 I/O 权限位图，则 TSS 的 io_bitmap 字段被设置为 `0x9000`。
-
+    &emsp;
     TSS 的 io_bitmap 字段应当包含一个在 TSS 中的偏移量，其中存放实际位图。无论何时用户态进程试图访问一个 I/O 端口，`0x8000` 和 `0x9000` 指向 TSS 界限之外并将因此引起 “General protection” 异常（参见第四章的 “异常” 一节）。`do_general_protection()` 异常处理程序将检查保存在 io_bitmap 字段的值：  
     - 如果是 `0x8000`，函数发送一个 SIGSEGV 信号给用户态进程；
     - 如果是 `0x9000`，函数把进程位图（由 thread_info 结构中的 io_bitmap_ptr 字段指示）拷贝到本地 CPU 的 TSS 中，把 io_bitmap字段设置为实际位置的偏移（104），并强制再一次执行有缺陷的汇编语言指令。  
