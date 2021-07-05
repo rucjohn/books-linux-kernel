@@ -33,3 +33,60 @@ movl next,%edx
 ```
 &emsp;
 
+2. 把 eflags 和 ebp 寄存器的内容保存在 prev 内核栈中。必须保存它们的原因是编译器认为在 `switch_to` 结束之前它们的值应当保持不变。  
+```
+pushfl
+pushl %ebp
+```
+&emsp;
+
+3. 把 esp 的内容保存到 `prev->thread.esp` 中以使该字段指向 prev 内核栈的栈顶：  
+```
+movl %esp,484(%eax)
+```
+484(%eax) 操作数表示内存单元的地址为 eax 内容加上 484。
+&emsp;
+
+4. 把 `next->thread.esp` 装入 esp。此时，内核开始在 next 的内核栈上操作，因此这条指令实际上完成了从 prev 到 next 的切换。由于进程描述符的地址和内核栈的地址紧挨着（就像我们在本章前面 “标识一个进程” 一节所解释的），所以改变内核栈意味着改变当前进程。  
+```
+movl 484(%edx), %esp
+```
+&emsp;
+
+5. 把标记为 1 的地址（本节后面所示）存入 `prev->thread.eip`。当被替换的进程重新恢复执行时，进程执行被标记为 1 的那条指令：  
+```
+movl %1f, 480(%eax)
+```
+&emsp;
+
+6. 宏把 `next->thread.eip` 的值（绝大多数情况下是一个被标记为 1 的地址）压入 next 的内核栈：  
+```
+pushl 480(%edx)
+```
+&emsp;
+
+7. 跳到 `__switch_to()` C 函数：  
+```
+jmp__switch_to
+```
+&emsp;
+
+8. 这里被进程 B 替换的进程 A 两次获得 CPU：它执行一些保存 eflags 和 ebp 寄存器内容的指令，这两条指令的第一条指令被标记为 1。  
+```
+1:
+    popl %ebp
+    popfl
+```
+注意这些 pop 指令是怎样引用 prev 进程的内核栈的。当进程调度程序选择了 prev 作为新进程在 CPU 上运行时，将执行这些指令。于是，以 prev 作为第二个参数调用 `switch_to`。因此，esp 寄存器指向 prev 的内核栈。  
+&emsp;
+
+9. 拷贝 eax 寄存器（上面步骤 1 中被装载）的内容到 `switch_to` 宏的第三个参数 last 标识的内存区域中：  
+```
+movl %eax, last
+```
+正如先前讨论的，eax 寄存器指向刚被替换的进程的描述符。  
+
+> 正如本节前面所叙述的，当前执行的 `schedule()` 函数重新使用了 prev 局部变量，于是汇编语言指令就是：`movl %eax,prev`  
+
+&emsp;
+
