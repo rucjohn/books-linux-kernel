@@ -89,3 +89,94 @@ movl %eax, last
     > 正如本节前面所叙述的，当前执行的 `schedule()` 函数重新使用了 prev 局部变量，于是汇编语言指令就是：`movl %eax,prev`  
 &emsp;
 
+## __switch_to() 函数
+
+`__switch_to()` 函数执行大多数开始于 `switch_to` 宏的进程切换。这个函数作用于 prev_p 和 next_p 参数，这两个参数表示前一个进程和新进程。这个函数的调用不同一般函数的调用，因为 `__switch_to()` 从 eax 和 edx 取参数 prev_p 和 next_p（我们在前面已看到这些参数就是保存在那里），而不像大多数函数一样从栈中取参数。为了强迫函数从寄存器取它的参数，内核利用 `__attribute__` 和 `regparm` 关键字，这两个关键字是 C 语言非标准的扩展名，由 gcc 编译程序实现。在 `include/asm-i386/system.h` 头文件中， `__switch_to()` 函数的声明如下：  
+
+```
+__switch_to(struct task_struct *prev_p, struct task_struct *next_p)
+__attribute__(regparm(3));
+```
+
+函数执行的步骤如下：  
+
+1. 执行由 `unlazy_fpu()` 宏产生的代码（参见本章稍后 “保存和加载 FPU、MMX 及 XMM 寄存器” 一节），以有选择地保存 prev_p 进程的 FPU、MMX 及 XMM 寄存器的内容。  
+```
+__unlazy_fpu(prev_p);
+```
+&emsp;
+
+2. 执行 `smp_processor_id()` 宏获得本地（*local*）CPU 的下标，即执行代码的 CPU。该宏从当前进程的 thread_info 结构的 cpu 字段获得下标并将它保存到 cpu 局部变量。  
+&emsp;
+
+3. 把 `nexp_p->thread.esp0` 装入对应于本地 CPU 的 TSS 的 esp0 字段；我们将在第十章的 “通过 sysenter 指令发生系统调用” 一节看到，以后任何由 systenter 汇编指令产生的从用户态到内核态的特权级转换将把这个地址拷贝到 esp 寄存器中：  
+```
+init_tss[cpu].esp0 = next->thread.esp0;
+```
+&emsp;
+
+4. 把 next_p 进程使用的线程局部存储（TLS）段装入本地 CPU 的全局描述符表；三个段选择符保存在进程描述符内的 tls_array 数组中（参见第二章的 “Linux 中的分段” 一节）。  
+```
+cpu_gdt_table[cpu][6] = next_p->thread.tls_arry[0];
+cpu_gdt_table[cpu][7] = next_p->thread.tls_arry[1];
+cpu_gdt_table[cpu][8] = next_p->thread.tls_arry[2];
+```
+&emsp;
+
+5. 把 fs 和 gs 段寄存器的内容分别存放在 `prev-P->thread.fs` 和 `prev-P->thread.gs` 中，对应的汇编语言指令是：  
+```
+movl %fs, 40(%esi)
+movl %gs, 44(%esi)
+```
+    esi 寄存器指向 `prev_p->thread` 结构。
+&emsp;
+
+6. 如果 fs 或 gs 段寄存器已经被 prev_p 和 next_p 进程中的任意一个使用（也就是说如果它们有一个非 0 的值），则将 next_p 进程的 thread_struct 描述符中保存的值装入这些寄存器中。这一步在逻辑上补充了前一步执行的操作。主要的汇编语言指令如下：  
+```
+movl 40(%ebx),%fs
+movl 44(%ebx),%gs
+```
+    ebx 寄存器指向 `next_p->thread` 结构。代码实际上更复杂，因为当它检测到一个无效的段寄存器值时，CPU 可能产生一个异常。代码采用一种 “修正（fix-up）” 途径来考虑这种可能性（参见第十章 “动态地址检查：修正代码” 一节）。  
+&emsp;
+
+7. 用 `next_p->thread.debugreg` 数组的内容装载 dr0......dr7 中的 6 个调试寄存器。只有在 next_p 被挂起时正在使用调试寄存器（也就是说，`next_p->thread.debugreg[7]` 字段不为 0），这种操作才能进行。这些寄存器不需要被保存，因为只有当一个调试器想要监控 prev 时 `prev_thread.debugreg` 才会被修改。  
+```
+if (next_p-thread.debugreg[7]) {
+    loaddebug(&next_p->thread, 0);
+    loaddebug(&next_p->thread, 1);
+    loaddebug(&next_p->thread, 2);
+    loaddebug(&next_p->thread, 3);
+    /* 没有 4 和 5 */
+    loaddebug(&next_p->thread, 6);
+    loaddebug(&next_p->thread, 7);
+}
+```
+    > 80x86 调试寄存器允许进程被硬件监控。最多可定义 4 个断点区域。一个被监控的进程只要产生一个线性地址位于个断点区域中之一，就会产一个异常。  
+&emsp;
+
+8. 如果必要，更新 TSS 中的 I/O 位图。当 next_p 或 prev_p 有其自己的定制 I/O 权限位图时必须这么做：  
+```
+if (prev_p->thread.io_bitmap_ptr || next_p->thread.io_bitmap_ptr)
+    handle_io_bitmap(&next_p->thread, &init_tss[cpu]);
+```
+    因为进程很少修改 I/O 权限位图，所以该位图在 “懒” 模式中被处理：当且仅当一个进程在当前时间片内实际访问 I/O 端口时，真实位图才被拷贝到本地 CPU 和 TSS 中。进程的定制 I/O 权限位图被保存在 thread_info 结构的 io_bitmap_ptr 字段指向的缓冲区中。`headle_io_bitmap()` 函数为next_p 进程设置本地 CPU 使用的 TSS 的 io_bitmap 字段如下：  
+    - 如果 next_p 进程不拥有自己的 I/O 权限位图，则 TSS 的 io_bitmap 字段被设置为 `0x8000`。
+    - 如果 next_p 进程拥有自己的 I/O 权限位图，则 TSS 的 io_bitmap 字段被设置为 `0x9000`。
+
+    TSS 的 io_bitmap 字段应当包含一个在 TSS 中的偏移量，其中存放实际位图。无论何时用户态进程试图访问一个 I/O 端口，`0x8000` 和 `0x9000` 指向 TSS 界限之外并将因此引起 “General protection” 异常（参见第四章的 “异常” 一节）。`do_general_protection()` 异常处理程序将检查保存在 io_bitmap 字段的值：  
+    - 如果是 `0x8000`，函数发送一个 SIGSEGV 信号给用户态进程；
+    - 如果是 `0x9000`，函数把进程位图（由 thread_info 结构中的 io_bitmap_ptr 字段指示）拷贝到本地 CPU 的 TSS 中，把 io_bitmap字段设置为实际位置的偏移（104），并强制再一次执行有缺陷的汇编语言指令。  
+&emsp;
+
+9. 终止 `__switch_to()` C 函数通过使用下列声明结束：  
+```
+return prev_p;
+```
+    由编译器产生的相应汇编语言指令是：
+    ```
+    movl %edi. %eax
+    ret
+    ```
+    prev_p 参数（现在在 edi 中）被拷贝到 eax，因为缺省情况下任何 C 函数的返回值被传递给 eax 寄存器。注意 eax 的值因此在调用 `__switch_to()` 的过程中被保护起来；这非常重要，因为调用 `switch_to` 宏时会假定 eax 总是用来存放将被替换的进程描述符的地址。  
+    汇编语言指令 ret 把栈顶保存的返回地址装入 eip 程序计数器。不过，通过简单地跳转到 `__switch_to()` 函数来调用该函数。因此，ret 汇编指令在栈中找到标号为 1 的指令的地址，其中标号为 1 的地址是由 `switch_to()` 宏推入栈中的。如果因为 next_p 第一次执行而以前从示被挂起，`__switch_to()` 就找到 `ret_from_fork()` 函数的起始地址（参见本章后面 “clone(), fork() 和 vfork() 系统调用” 一节）。
+
