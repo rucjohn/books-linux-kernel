@@ -54,3 +54,4 @@
     * [硬件上下文](topic_3/Process_switch/Hardware_context.md)
     * [任务状态段](topic_3/Process_switch/TSS.md)
     * [执行进程切换](topic_3/Process_switch/Execution_process_switch.md)
+    * [保存和加载FPU、MMX及XMM寄存](topic_3/Process_switch/Save_and_load_FPU_MMX_and_XMM_registers.md)
