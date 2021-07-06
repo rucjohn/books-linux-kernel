@@ -78,3 +78,14 @@ void math_state_restore()
 ```
 
 这个函数清 cr0 的 TS 标志，以便进程以后执行 FPU、MMX 或 SSE/SSE2 指令时不再触发 “设备不可用” 的异常。如果 thread.i387 子字段中的内容是无效的，也就是说，如果 PF_USED_MATH 标志等于 0，就调用`init_fpu()` 重新设置 thread.i387 子字段，并把 PF_USED_MATH 标志的当前值置为 1。`restore_fpu()` 函数把保存在 thread.i387 子字段中的适当值载入 FPU 寄存器。为此，根据 CPU 是否支持 SSE/SSE2 扩展来使用 fxrstor 或 frstor 汇编语言指令。最后，`math_state_restore()` 设置 TS_USEDFPU 标志。
+
+## 在内核态使用FPU、MMX和SSE/SSE2单元
+
+内核也可以使用 FPU、MMX 和 SSE/SSE2 单元。当然，这样做的时候，应该避免干扰用户态进程所进行的任何计算。因此：  
+- 在使用协处理器之前，如果用户态进程使用了 FPU（TS_USEDFPU 标志），内核必须调用 `kernel_fpu_begin()`，其本质就是调用 `save_init_fpu()` 来保存寄存器的内容，然后重新设置 cr0 寄存器的 TS 标志。
+- 在使用完协处理器之后，内核必须调用 `kernel_fpu_end()` 设置 cr0 寄存器的 TS 标志。
+
+稍后，当用户态进程执行协处理器指令时，`math_state_restore()` 函数将恢复寄存器的内容（就像处理进程切换那样）。
+
+但是，应该注意，当前用户态进程正在使用协处理器时，`kernel_fpu_begin()` 的执行时间相当长，以至于无法通过使用 FPU、MMX 或 SSE/SSE2 单元达到加速的目的。实际上，内核只在有限的场合使用 FPU、MMX 或 SSE/SSE2单元，典型的情况有：当移动或清除大内存区字段时，或者当计算校验和函数时。
+
