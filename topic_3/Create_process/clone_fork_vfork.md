@@ -48,5 +48,6 @@ CLONE_PARENT_SETTID | 把子进程的 PID 写入由 ptid 参数所指向的父�
 CLONE_CHILD_CLEARTID | 如果该标志被设置，则内核建立一种触发机制，用在子进程要退出或要开始执行新程序时。在这些情况下，内核将清除由参数 ctid 所指向的用户态变量，并唤醒等待这个事件的任何进程
 CLONE_DETACHED | 遗留标志，内核会忽略它
 CLONE_UNTRACED | 内核设置这个标志以使 CLONE_PTRACE 标志失去作用（用来禁止内核线程跟踪进程，参见本章稍后的 “内核线程” 一节）
-
+CLONE_CHILD_SETTID | 把子进程的 PID 写入由 ctid 参数所指向的子进程的用户态变量中
+CLONE_STOPPED | 强迫子进程开始于 TASK_STOPPED 状态
 
