@@ -29,7 +29,7 @@
 2. 检查父进程的 ptrace 字段（current->ptrace）：如果它的值不等于 0，说明有另外一个进程正在跟踪父进程，因而，`do_fork()` 检查 debugger 程序是否自己想跟踪子进程（独立于由父进程指定的 CLONE_PTRACE 标志的值）。在这种情况下，如果子进程不是内核线程（CLONE_UNTRACED 标志被清 0），那么 `do_fork()` 函数设置 CLONE_PTRACE 标志。  
 &emsp;
 
-3.调用 `copy_process()` 复制进程描述符。如果所有必须的资源都是可用的，该函数返回刚创建的 task_struct 描述符的地址。这是创建过程的关键步骤，我们将在 `do_fork()` 之后描述它。  
+3. 调用 `copy_process()` 复制进程描述符。如果所有必须的资源都是可用的，该函数返回刚创建的 task_struct 描述符的地址。这是创建过程的关键步骤，我们将在 `do_fork()` 之后描述它。  
 &emsp;
 
 4. 如果设置了 CLONE_STOPPED 标志，或者必须跟踪子进程，即在 `p->ptrace` 中设置了 PT_PTRACED 标志，那么子进程的状态被设置成 TASK_STOPPED，并为子进程增加挂起的 SIGSTOP 信号（参见第十一章 “信号的作用” 一节）。在另外一个进程（不妨假设是跟踪进程或是父进程）把子进程的状态恢复为 TASK_RUNNING 之前（通常是通过发送 SIGCONT 信号），子进程将一直保持 TASK_STOPPED 状态。  
