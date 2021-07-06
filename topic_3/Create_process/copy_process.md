@@ -6,9 +6,12 @@
 
     a. CLONE_NEWNS 和 CLONE_FS 标志都被设置。  
     &emsp;
+    
     b. CLONE_THREAD 标志被设置，但 CLONE_SIGHAND 标志被清 0（同一线程组中的轻量级进程必须共享信号）。  
     &emsp;
+    
     c. CLONE_SIGHAND 标志被设置，但 CLONE_VM 被清 0（共享信号处理程序的轻量级进程也必须共享内存描述符）。  
+    
 &emsp;
 
 2. 通过调用 `security_task_create()` 以及稍后调用的 `security_task_alloc()` 执行所有附加的安全检查。Linux 2.6 提供扩展安全性的钩子函数，与传统 Unix 相比它具有更加强壮的安全模型。详情参见第二干章。  
@@ -18,17 +21,24 @@
 
     a. 如果需要，则在当前进程中调用 `__unlazy_fpu()`，把 FPU、MMX 和 SSE/SSE2 寄存器的内容保存到父进程的 thread_info 结构中。稍后，`dup_task_struct()` 将把这些值复制到子进程的 thread_info 结构中。  
     &emsp;
+    
     b. 执行 `alloc_task_struct()` 宏，为新进程获取进程描述符（task_struct 结构），并将描述符地址保存在 tsk 局部变量中。  
     &emsp;
+    
     c. 执行 `alloc_thread_info` 宏以获取一块空闲内存区，用来存放新进程的 thread_info 结构和内核栈，并将这块内存区字段的地址存在局部变量 ti 中。正如在本章前面 “标识一个进程” 一节中所述：这块内存区字段的大小是 8KB 或 4KB 。  
     &emsp;
+    
     d. 将 current 进程描述符的内容复制到 tsk 所指向的 task_struct 结构中，然后把 `tsk->thread_info` 为 ti。  
     &emsp;
+    
     e. 把 current 进程的 thread_info 描述符的内容复制到 ti 所指向的结构中，然后把 `ti->task` 置为 tsk。  
     &emsp;
+    
     f. 把新进程描述符的使用计数器（`tsk->usage`）置为 2，用来表示进程描述符正在被使用而且其相应的进程处于活动状态（进程状态即不是 EXIT_ZOMBIE，也不是 EXITDEAD）。  
     &emsp;
+    
     g. 返回新进程的进程描述符指针（tsk）。  
+    
 &emsp;
 
 4. 检查存放在 `current->signal->rlim[RLIMITNPROC].rlim_cur` 变量中的值是否小于或等于用户所拥有的进程数。如果是，则返回错误码，除非进程没有 root 权限。该函数从每用户数据结构 user_struct 中获取用户所拥有的进程数。通过进程描述符 user 字段的指针可以找到这个数据结构。  
@@ -47,9 +57,12 @@
 
     a. 把大内核锁计数器 `tsk->lock_depth` 始化为 -1（参见第五章 “大内核锁” 一节）。  
     &emsp;
+    
     b. 把 `tsk->did_exec` 字段初始化为 0：它记录了进程发出的 `execve()` 系统调用的次数。  
     &emsp;
+    
     c. 更新从父进程复制到 `tsk->flags` 字段中的一些标志：首先清除 PF_SUPERPRIV 标志，该标志表示进程是否使用了某种超级用户权限。然后设置 PF_FORKNOEXEC 标志，它表示子进程还没有发出 `execve()` 系统调用。  
+    
 &emsp;
 
 9. 把新进程的 PID 存入 `tsk->pid` 字段。  
@@ -106,18 +119,24 @@
 
     a. 把 `tsk->tgid` 的初值置为 `tsk->pid`。  
     &emsp;
+    
     b. 把 `tsk->group_leader` 的初值置为 tsk 。  
     &emsp;
+    
     c. 调用三次 `attach_pid()`，把子进程分别插入 PIDTYPE_TGID、PIDTYPE_PGID 和 PIDTYPE_SID 类型的 PID 散列表。  
+    
 &emsp;
 
 25. 否则，如果子进程属于它的父进程的线程组（CLONE_THREAD 标志被设置）：  
 
     a. 把 `tsk->tgid` 的初值置为 `tsk->current->tgid`。  
     &emsp;
+    
     b. 把 `tsk->group_leader` 的初值置为 `current->group_leader` 的值。  
     &emsp;
+    
     c. 调用 `attach_pid()`，把子进程插入 PIDTYPE_TGID 类型的散列表中（更具体地说，插入 `current->group_leader` 进程的每个 PID 链表）。  
+    
 &emsp;
 
 26. 现在，新进程已经被加人进程集合：递增 nr_threads 变量的值。  
