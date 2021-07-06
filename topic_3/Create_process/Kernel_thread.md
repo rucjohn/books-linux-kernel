@@ -6,4 +6,26 @@
 - 内核线程只运行在内核态，而普通进程既可以运行在内核态，也可以运行在用户态。
 - 因为内核线程只运行在内核态，它们只使用大于 PAGE_OFFSET 的线性地址空间。另一方面，不管在用户态还是在内核态，普通进程可以用 4GB 的线性地址空间。
 
-## 
+## 创建一个内核线程
+
+`kernel_thread()` 函数创建一个新的内核线程，它接受的参数有：所要执行的内核函数的地址（fn）、要传递给函数的参数（arg）、一组clone标志（flags）。该函数本质
+上以下面的方式调用 `do_fork()`：  
+
+```
+do_fork(flags|CLONE_VM|CLONE_UNTRACED，O，pregs，0，NULL，NULL);
+```
+
+CLONE_VM 标志避免复制调用进程的页表：由于新内核线程无论如何都不会访问用户态地址空间，所以这种复制无疑会造成时间和空间的浪费。CLONE_UNTRACED标志保证
+不会有任何进程跟踪新内核线程，即使调用进程被跟踪。
+传递给do_fork（）的参数pregs表示内核栈的地址，copy_thread（）函数将从这里找
+到为新线程初始化CPU寄存器的值。kernel_thread（）函数在这个栈中保留寄存器值
+的目的是：
+通过copy_thread（）把ebx和edx分别设置为参数fn和arg的值
+把eip寄存器的值设置为下面汇编语言代码段的地址：
+mov1edx,eax
+pushl sedx
+call*sebx
+pushl seax
+calldo_exit
+因此，新的内核线程开始执行fn（arg）函数，如果该函数结束，内核线程执行系统调
+用。exit（），并把fn（）的返回值传递给它（参见本章稍后“撤消进程”一节）。
