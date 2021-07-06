@@ -91,7 +91,7 @@ movl %eax, last
 
 ## __switch_to() 函数
 
-`__switch_to()` 函数执行大多数开始于 `switch_to` 宏的进程切换。这个函数作用于 prev_p 和 next_p 参数，这两个参数表示前一个进程和新进程。这个函数的调用不同一般函数的调用，因为 `__switch_to()` 从 eax 和 edx 取参数 prev_p 和 next_p（我们在前面已看到这些参数就是保存在那里），而不像大多数函数一样从栈中取参数。为了强迫函数从寄存器取它的参数，内核利用 `__attribute__` 和 `regparm` 关键字，这两个关键字是 C 语言非标准的扩展名，由 gcc 编译程序实现。在 `include/asm-i386/system.h` 头文件中， `__switch_to()` 函数的声明如下：  
+`__switch_to()` 函数执行大多数开始于 `switch_to` 宏的进程切换。这个函数作用于 prev_p 和 next_p 参数，这两个参数表示前一个进程和新进程。这个函数的调用不同一般函数的调用，因为 `__switch_to()` 从 eax 和 edx 取参数 prev_p 和 next_p（我们在前面已看到这些参数就是保存在那里），而不像大多数函数一样从栈中取参数。为了强迫函数从寄存器取它的参数，内核利用 `\_\_attribute\_\_` 和 `regparm` 关键字，这两个关键字是 C 语言非标准的扩展名，由 gcc 编译程序实现。在 `include/asm-i386/system.h` 头文件中， `__switch_to()` 函数的声明如下：  
 
 ```
 __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
