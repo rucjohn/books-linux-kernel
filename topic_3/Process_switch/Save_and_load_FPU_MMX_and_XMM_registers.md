@@ -31,3 +31,50 @@ union i387_union {
 - 包含在 task_struct 描述符的 flags 字段中的 PF_USED_MATH 标志。这个标志表示 thread.i387 子字段的内容是否有意义。该标志在两种情况下被清 0（没有意义），如下所示：
   - 当进程调用 `execve()` 系统调用（参见第二十章）开始执行一个新程序时。因为控制权将不再返回到前一个程序，所以当前存放在 thread.i387 中的数据也不再使用。
   - 当在用户态下执行一个程序的进程开始执行一个信号处理程序时（参见第十一章）。因为信号处理程序与程序的执行流是异步的，因此，浮点寄存器对信号处理程序来说可能是毫无意义的。不过，内核开始执行信号处理程序之前在 thread.i387 中保存浮点寄存器，处理程序结束以后恢复它们。因此，信号处理程序可以使用数学协处理器。
+
+## 保存FPU寄存器
+
+如前所述，`__switch_to()` 函数把被替换进程 prev 的描述符作为参数传递给 `_unlazy_fpu` 宏，并执行该宏。这个宏检查 prev 的 TS_USEDFPU 标志值。如果该标志被设置，说明 prev 在这次执行中使用了 FPU、MMX、SSE 或 SSE2 指令；因此内核必须保存相关的硬件上下文：  
+```
+if (prev->thread_info->status & TS_USEDPPU)
+    save_init_fpu(prev);
+```
+
+`save_init_fpu()` 函数依次执行下列操作：  
+1. 把 FPU 寄存器的内容转储到 prev 进程描述符中，然后重新初始化 FPU。如果 CPU 使用 SSE/SSE2 扩展，则还应该转储 XMM 寄存器的内容，并重新初始化 SSE/SSE2 单元。一对功能强大的嵌入式汇编语言指令处理每件事情，如果 CPU 使用 SSE/SSE2扩展，则：  
+```
+asm volatile( "fxsave %0; fnclex"
+    : "=m" (tsk->thread.1387.fxSave) );
+```
+否则：  
+```
+asm volatile( "fnsave %0; fwait"
+    : "=m" (tsk->thread.1387.fsave) );
+```
+
+2. 重置 prev 的 TS_USEDFPU 标志：  
+```
+prev->thread_info->status &= ~TS_USEDFPU;
+```
+
+3. 用`stts()` 宏设置 cr0 的 TS 标志，实际上，该宏产生下面的汇编语言指令：  
+```
+movl %cr0，eax
+orl $8,%eax
+movl %eax，%cr0
+```
+
+## 装载FPU寄存器
+
+当 next 进程刚恢复执行时，浮点寄存器的内容还没有被恢复，不过，cr0 的 TS 标志位已由 `__unlazy_fpu()` 设置。因此，next 进程第一次试图执行 ESCAPE、MMX 或 SSE/SSE2 指令时，控制单元产生一个 “Device not available” 异常，内核（更确切地说，由异常调用的异常处理程序）运行 `math_state_restore()` 函数。处理程序把 next 进程当作 current 进程。  
+```
+void math_state_restore()
+{
+    asm volatile ("clts"); /* clear the TS flag of cr0 */
+    if (!(current->flags & PF_USED_MATH))
+        init_fpu(current);
+    restore_fpu(current);
+    current->thread.status != TS_USEDFPU;
+```
+
+这个函数清 cr0 的 TS 标志，以便进程以后执行 FPU、MMX 或 SSE/SSE2 指令时不再触发 “设备不可用” 的异常。如果 thread.i387 子字段中的内容是无效的，也就是说，如果 PF_USED_MATH 标志等于 0，就调用`init_fpu()` 重新设置 thread.i387 子字段，并把 PF_USED_MATH 标志的当前值置为 1。`restore_fpu()` 函数把保存在 thread.i387 子字段中的适当值载入 FPU 寄存器。为此，根据 CPU 是否支持 SSE/SSE2 扩展来使用 fxrstor 或 frstor 汇编语言指令。最后，`math_state_restore()` 设置 TS_USEDFPU 标志。
