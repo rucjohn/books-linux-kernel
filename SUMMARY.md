@@ -41,7 +41,7 @@
   * [进程、轻量级进程和线程](topic_3/Process_LWP_thread.md)
   * [进程描述符](topic_3/Process_descriptor/README.md)
     * [进程状态](topic_3/Process_descriptor/Process_state.md)
-    * [标识一个进程](topic_3/Process_descriptor/Identify_a_process/READMD.md)
+    * [标识一个进程](topic_3/Process_descriptor/Identify_a_process/README.md)
       * [进程描述符处理](topic_3/Process_descriptor/Identify_a_process/Process_descriptor_processing.md)
       * [标识当前进程](topic_3/Process_descriptor/Identify_a_process/Identify_the_current_process.md)
       * [双向链表](topic_3/Process_descriptor/Identify_a_process/Doubly_linked_list.md)
