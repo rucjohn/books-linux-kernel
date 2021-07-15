@@ -1,6 +1,6 @@
 # 进程链表
 
-我们首先介绍双向链表的每个例子 --- 进程链表，进程链表把所有进程的描述符链表起来。每个 task_struct 结构都包含一个 list_head 类型的 tasks 字段，这个类型的 prev 和 next 字段分别指向前面和后面的 task_struct 元素。
+我们首先介绍双向链表的第一个例子 --- 进程链表，进程链表把所有进程的描述符链表起来。每个 task_struct 结构都包含一个 list_head 类型的 tasks 字段，这个类型的 prev 和 next 字段分别指向前面和后面的 task_struct 元素。
 
 进程链表的头是 init_task 描述符，它是所谓的 0 进程（*process 0*）或 *swapper* 进程的进程描述符（参见本章 “内核线程” 一节）。init_task 的 tasks.prev 字段指向链表中最后插入的进程描述符的 tasks 字段。
 
