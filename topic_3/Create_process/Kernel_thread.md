@@ -58,7 +58,7 @@ kernel_thread(init, NULL, CLONE_FS|CLONE_SIGHAND)；
 
 创建 *init* 进程后，进程 0 执行 `cpu_idie()` 函数，该函数本质上是在开中断的情况下重复执行 hlt 汇编语言指令（参见第四章）。只有当没有其他进程处于 TASK_RUNNING 状态时，调度程序才选择进程 0。
 
-在多处理器系统中，每个 CPU 都有一个进程 0。只要打开机器电源，计算机的 BIOS 就启动某一个 CPU，同时禁用其他 CPU。运行在 CPUO 上的 swapper 进程初始化内核数据结构，然后激活其他的 CPU，并通过`copy_process()` 函数创建另外的 swapper 进程，把 0 传递给新创建的 swapper 进程作为它们的新 PID。此外，内核把适当的 CPU 索引赋给内核所创建的每个进程的 thread_info 描述符的 cpu 字段。
+在多处理器系统中，每个 CPU 都有一个进程 0。只要打开机器电源，计算机的 BIOS 就启动某一个 CPU，同时禁用其他 CPU。运行在 CPU 0 上的 swapper 进程初始化内核数据结构，然后激活其他的 CPU，并通过`copy_process()` 函数创建另外的 swapper 进程，把 0 传递给新创建的 swapper 进程作为它们的新 PID。此外，内核把适当的 CPU 索引赋给内核所创建的每个进程的 thread_info 描述符的 cpu 字段。
 
 ## 进程 1
 
